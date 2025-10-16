@@ -64,7 +64,7 @@ resource "aws_instance" "public" {
   instance_type               = "t2.nano"
   subnet_id                   = aws_subnet.public.id
   associate_public_ip_address = true
-  security_groups             = [aws_security_group.allow_icmp.id]
+  vpc_security_group_ids      = [aws_security_group.allow_icmp.id]
 }
 
 ###################################################
