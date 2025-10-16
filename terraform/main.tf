@@ -49,9 +49,9 @@ resource "aws_route_table_association" "public" {
 resource "aws_security_group" "allow_icmp" {
   vpc_id = aws_vpc.vpc.id
   ingress {
-    protocol = "icmp"
-    from_port = -1
-    to_port = -1
+    protocol    = "icmp"
+    from_port   = -1
+    to_port     = -1
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -60,11 +60,11 @@ resource "aws_security_group" "allow_icmp" {
 # EC2
 ##################################################
 resource "aws_instance" "public" {
-  ami           = "ami-070e0d4707168fc07"
-  instance_type = "t2.nano"
+  ami                         = "ami-070e0d4707168fc07"
+  instance_type               = "t2.nano"
   subnet_id                   = aws_subnet.public.id
   associate_public_ip_address = true
-  security_groups = [ aws_security_group.allow_icmp.id ]
+  security_groups             = [aws_security_group.allow_icmp.id]
 }
 
 ###################################################
