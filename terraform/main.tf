@@ -8,20 +8,11 @@ terraform {
 }
 
 provider "aws" {
-  region  = "ap-northeast-1"
-  profile = "personal_2"
+  region = "ap-northeast-1"
 }
 
-##################################################
-# VPC
-##################################################
 resource "aws_vpc" "vpc" {
   cidr_block = "10.0.0.0/16"
-}
-
-resource "aws_subnet" "public" {
-  vpc_id     = aws_vpc.vpc.id
-  cidr_block = "10.0.1.0/24"
 }
 
 resource "aws_internet_gateway" "ig" {
@@ -31,6 +22,11 @@ resource "aws_internet_gateway" "ig" {
 resource "aws_internet_gateway_attachment" "ig_attachment" {
   internet_gateway_id = aws_internet_gateway.ig.id
   vpc_id              = aws_vpc.vpc.id
+}
+
+resource "aws_subnet" "public" {
+  vpc_id     = aws_vpc.vpc.id
+  cidr_block = "10.0.1.0/24"
 }
 
 resource "aws_route_table" "public" {
@@ -54,41 +50,16 @@ resource "aws_security_group" "allow_icmp" {
     to_port     = -1
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  ingress {
-    protocol    = "tcp"
-    from_port   = 22
-    to_port     = 22
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    protocol    = "-1"
-    from_port   = 0
-    to_port     = 0
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-##################################################
-# EC2
-##################################################
-resource "aws_key_pair" "ssh" {
-  public_key = file("id.pub")
 }
 
 resource "aws_instance" "public" {
   ami                         = "ami-070e0d4707168fc07"
   instance_type               = "t2.nano"
-  key_name                    = aws_key_pair.ssh.key_name
   subnet_id                   = aws_subnet.public.id
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.allow_icmp.id]
 }
 
-###################################################
-# Outputs
-###################################################
-output "instance_public_ip" {
+output "ip" {
   value = aws_instance.public.public_ip
 }
