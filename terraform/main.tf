@@ -42,7 +42,7 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
 }
 
-resource "aws_security_group" "allow_icmp" {
+resource "aws_security_group" "public" {
   vpc_id = aws_vpc.vpc.id
   ingress {
     protocol    = "icmp"
@@ -50,14 +50,31 @@ resource "aws_security_group" "allow_icmp" {
     to_port     = -1
     cidr_blocks = ["0.0.0.0/0"]
   }
+  ingress {
+    protocol    = "tcp"
+    from_port   = 22
+    to_port     = 22
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    protocol    = "-1"
+    from_port   = 0
+    to_port     = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_key_pair" "ssh" {
+  public_key = file("id.pub")
 }
 
 resource "aws_instance" "public" {
   ami                         = "ami-070e0d4707168fc07"
   instance_type               = "t2.nano"
+  key_name                    = aws_key_pair.ssh.key_name
   subnet_id                   = aws_subnet.public.id
   associate_public_ip_address = true
-  vpc_security_group_ids      = [aws_security_group.allow_icmp.id]
+  vpc_security_group_ids      = [aws_security_group.public.id]
 }
 
 output "ip" {
@@ -93,6 +110,12 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_security_group" "private" {
   vpc_id = aws_vpc.vpc.id
+  ingress {
+    protocol        = "tcp"
+    from_port       = 22
+    to_port         = 22
+    security_groups = [aws_security_group.public.id]
+  }
   egress {
     protocol    = "-1"
     from_port   = 0
@@ -101,32 +124,18 @@ resource "aws_security_group" "private" {
   }
 }
 
-resource "aws_iam_role" "ec2_role" {
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect = "Allow"
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      }
-      Action = "sts:AssumeRole"
-    }]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "ssm_attach" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-resource "aws_iam_instance_profile" "instance_profile" {
-  role = aws_iam_role.ec2_role.name
-}
-
 resource "aws_instance" "private" {
   ami                    = "ami-070e0d4707168fc07"
   instance_type          = "t2.nano"
+  key_name               = aws_key_pair.ssh.key_name
   subnet_id              = aws_subnet.private.id
   vpc_security_group_ids = [aws_security_group.private.id]
-  iam_instance_profile   = aws_iam_instance_profile.instance_profile.name
+}
+
+output "ssh_public" {
+  value = "ssh -i id ec2-user@${aws_instance.public.public_ip}"
+}
+
+output "ssh_private" {
+  value = "ssh -i id -o ProxyCommand='ssh -i id -W %h:%p ec2-user@${aws_instance.public.public_ip}' ec2-user@${aws_instance.private.private_ip}"
 }
