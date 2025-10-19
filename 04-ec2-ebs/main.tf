@@ -61,7 +61,8 @@ resource "aws_ebs_volume" "data" {
 }
 
 resource "aws_volume_attachment" "data_att" {
-  instance_id = aws_instance.instance_2.id
+  instance_id = aws_instance.instance.id
+  // instance_id = aws_instance.instance_2.id 
   volume_id   = aws_ebs_volume.data.id
   device_name = "/dev/sdf"
 }
