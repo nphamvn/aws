@@ -4,6 +4,10 @@ terraform {
       source = "hashicorp/aws"
     }
   }
+  backend "s3" {
+    bucket = "075313985331-terraform"
+    key    = "02-ec2/terraform.tfstate"
+  }
 }
 
 provider "aws" {
@@ -36,6 +40,14 @@ resource "aws_instance" "public" {
   key_name                    = aws_key_pair.ssh.key_name
   associate_public_ip_address = true
   security_groups             = [aws_security_group.all_all_traffic.name]
+}
+
+output "public_ip" {
+  value = aws_instance.public.public_ip
+}
+
+output "ping_command" {
+  value = "ping -c 4 ${aws_instance.public.public_ip}"
 }
 
 output "ssh_command" {
