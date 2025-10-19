@@ -36,6 +36,10 @@ resource "aws_instance" "instance" {
   key_name                    = aws_key_pair.ssh.key_name
   associate_public_ip_address = true
   security_groups             = [aws_security_group.all_all_traffic.name]
+
+  tags = {
+    Name = "${basename(path.cwd)}-1"
+  }
 }
 
 output "ssh_command" {
@@ -49,6 +53,10 @@ resource "aws_instance" "instance_2" {
   availability_zone           = aws_instance.instance.availability_zone // Ensure both instances are in the same AZ
   associate_public_ip_address = true
   security_groups             = [aws_security_group.all_all_traffic.name]
+
+  tags = {
+    Name = "${basename(path.cwd)}-2"
+  }
 }
 
 output "ssh_command_2" {

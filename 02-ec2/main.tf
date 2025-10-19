@@ -40,6 +40,10 @@ resource "aws_instance" "public" {
   key_name                    = aws_key_pair.ssh.key_name
   associate_public_ip_address = true
   security_groups             = [aws_security_group.all_all_traffic.name]
+
+  tags = {
+    Name = basename(path.cwd)
+  }
 }
 
 output "public_ip" {
