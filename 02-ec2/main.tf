@@ -14,6 +14,10 @@ provider "aws" {
 
 }
 
+locals {
+  ami = "ami-070e0d4707168fc07"
+}
+
 resource "aws_key_pair" "ssh" {
   public_key = file("id.pub")
 }
@@ -35,7 +39,7 @@ resource "aws_security_group" "all_all_traffic" {
 }
 
 resource "aws_instance" "public" {
-  ami                         = "ami-070e0d4707168fc07"
+  ami                         = local.ami
   instance_type               = "t2.nano"
   key_name                    = aws_key_pair.ssh.key_name
   associate_public_ip_address = true
