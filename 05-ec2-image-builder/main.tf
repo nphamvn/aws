@@ -14,14 +14,6 @@ provider "aws" {
 
 }
 
-data "aws_partition" "current" {
-
-}
-
-data "aws_region" "region" {
-
-}
-
 resource "aws_imagebuilder_image_pipeline" "pipeline" {
   name                             = "MyWebServerImagePipeline"
   image_recipe_arn                 = aws_imagebuilder_image_recipe.image_recipe.arn
@@ -29,7 +21,7 @@ resource "aws_imagebuilder_image_pipeline" "pipeline" {
 }
 
 resource "aws_imagebuilder_image_recipe" "image_recipe" {
-  name         = "MyWebServerImage"
+  name         = "MyWebServer"
   version      = "1.0.0"
   parent_image = "arn:aws:imagebuilder:ap-northeast-1:aws:image/amazon-linux-2023-x86/x.x.x"
   component {
