@@ -34,6 +34,26 @@ resource "aws_iam_role_policy_attachment" "ssm_core" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+resource "aws_iam_role_policy" "cloudwatch" {
+  role = aws_iam_role.ssm_ec2_role.name
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
+          "logs:PutLogEvents"
+        ],
+        Resource = "arn:aws:logs:ap-northeast-1:075313985331:log-group:/aws/ssm/session-logs:*"
+      }
+    ]
+  })
+}
+
 resource "aws_iam_instance_profile" "ssm_profile" {
   role = aws_iam_role.ssm_ec2_role.name
 }
@@ -80,12 +100,12 @@ resource "aws_cloudwatch_log_group" "ssm_sessions" {
 }
 
 resource "aws_ssm_document" "session_preferences" {
-  name          = "My-SSM-SessionManagerRunShell"
+  name          = "1-ssm-public-vpc-SSM-SessionManagerRunShell"
   document_type = "Session"
   content = jsonencode({
     schemaVersion = "1.0",
     //description   = "Enable CloudWatch logging for SSM sessions",
-    sessionType   = "Standard_Stream",
+    sessionType = "Standard_Stream",
     inputs = {
       cloudWatchLogGroupName = aws_cloudwatch_log_group.ssm_sessions.name
       //cloudWatchEncryptionEnabled = false
